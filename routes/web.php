@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\MahasiswaController;
 
 Route::get('/', function () {
     return view('landing');
@@ -39,3 +40,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::put('/matakuliah/{mataKuliah}', [AdminController::class, 'updateMataKuliah'])->name('admin.matakuliah.update');
     Route::delete('/matakuliah/{mataKuliah}', [AdminController::class, 'destroyMataKuliah'])->name('admin.matakuliah.destroy');
 });
+
+Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(function () {
+     Route::get('/dashboard', [MahasiswaController::class, 'index'])->name('mahasiswa.dashboard');
+    Route::get('/krrs', [MahasiswaController::class, 'krrsIndex'])->name('mahasiswa.krrs.index');
+    Route::post('/krrs/ambil', [MahasiswaController::class, 'ambilKrrs'])->name('mahasiswa.krrs.ambil');
+    Route::get('/krrs/cetak', [MahasiswaController::class, 'cetakKrrs'])->name('mahasiswa.krrs.cetak');
+    });
