@@ -2,31 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // ==== Form View ====
-    public function showLoginMahasiswa() {
+    // ================================
+    // ======== LOGIN SECTION =========
+    // ================================
+
+    public function showLoginMahasiswa()
+    {
         return view('auth.login-mahasiswa');
     }
 
-    public function showLoginAdmin() {
+    public function showLoginAdmin()
+    {
         return view('auth.login-admin');
     }
 
-    public function showRegisterMahasiswa() {
-        return view('auth.register-mahasiswa');
-    }
-
-    public function showRegisterAdmin() {
-        return view('auth.register-admin');
-    }
-
-    // ==== Proses Login ====
-    public function loginMahasiswa(Request $request) {
+    public function loginMahasiswa(Request $request)
+    {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -34,13 +32,16 @@ class AuthController extends Controller
 
         if (Auth::attempt(array_merge($credentials, ['role' => 'mahasiswa']))) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard/mahasiswa');
+            return redirect()->intended('/mahasiswa/dashboard');
         }
 
-        return back()->withErrors(['email' => 'Login Mahasiswa gagal.'])->onlyInput('email');
+        return back()->withErrors([
+            'email' => 'Email atau password salah, atau akun bukan mahasiswa.',
+        ]);
     }
 
-    public function loginAdmin(Request $request) {
+    public function loginAdmin(Request $request)
+    {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -48,55 +49,81 @@ class AuthController extends Controller
 
         if (Auth::attempt(array_merge($credentials, ['role' => 'admin']))) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard/admin');
+            return redirect()->intended('/admin/dashboard');
         }
 
-        return back()->withErrors(['email' => 'Login Admin gagal.'])->onlyInput('email');
+        return back()->withErrors([
+            'email' => 'Email atau password salah, atau akun bukan admin.',
+        ]);
     }
 
-    // ==== Proses Register ====
-    public function registerMahasiswa(Request $request) {
+    // ================================
+    // ======= REGISTER SECTION =======
+    // ================================
+
+    public function showRegisterMahasiswa()
+    {
+        return view('auth.register-mahasiswa');
+    }
+
+    public function showRegisterAdmin()
+    {
+        return view('auth.register-admin');
+    }
+
+    public function registerMahasiswa(Request $request)
+    {
         $validated = $request->validate([
-            'name' => ['required', 'string'],
-            'email' => ['required', 'email', 'unique:users'],
-            'password' => ['required', 'confirmed', 'min:6'],
+            'name'     => 'required|string|max:255',
+            'nim'      => 'required|string|unique:users,nim',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|confirmed|min:6',
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'role' => 'mahasiswa'
+            'name'     => $validated['name'],
+            'nim'      => $validated['nim'],
+            'email'    => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role'     => 'mahasiswa',
         ]);
 
         Auth::login($user);
-        return redirect('/dashboard/mahasiswa');
+
+        return redirect('/mahasiswa/dashboard');
     }
 
-    public function registerAdmin(Request $request) {
+    public function registerAdmin(Request $request)
+    {
         $validated = $request->validate([
-            'name' => ['required', 'string'],
-            'email' => ['required', 'email', 'unique:users'],
-            'password' => ['required', 'confirmed', 'min:6'],
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|confirmed|min:6',
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'role' => 'admin'
+            'name'     => $validated['name'],
+            'email'    => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role'     => 'admin',
         ]);
 
         Auth::login($user);
-        return redirect('/dashboard/admin');
+
+        return redirect('/admin/dashboard');
     }
 
-    // ==== Logout ====
-    public function logout(Request $request) {
+    // ================================
+    // ============ LOGOUT ============
+    // ================================
+
+    public function logout(Request $request)
+    {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/');
     }
 }
-

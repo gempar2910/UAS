@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -12,11 +13,10 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'nim',
         'email',
         'password',
         'role',
-        'status',
-        'remember_token',
     ];
 
     protected $hidden = [
@@ -24,13 +24,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function profileMahasiswa()
+    /**
+     * Relasi: Mahasiswa memiliki banyak mata kuliah melalui tabel krrs
+     */
+    public function mataKuliahs(): BelongsToMany
     {
-        return $this->hasOne(ProfileMahasiswa::class, 'mahasiswa_id');
-    }
-
-    public function mataKuliahs()
-    {
-        return $this->hasMany(MataKuliah::class, 'mahasiswa_id', 'id');
+        return $this->belongsToMany(MataKuliah::class, 'krrs', 'mahasiswa_id', 'mata_kuliah_id')
+                    ->withTimestamps();
     }
 }
