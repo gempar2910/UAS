@@ -6,7 +6,6 @@ use App\Models\MataKuliah;
 use App\Models\Krrs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
 class MahasiswaController extends Controller
 {
     // Dashboard Mahasiswa
